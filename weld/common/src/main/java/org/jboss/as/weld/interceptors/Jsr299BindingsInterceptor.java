@@ -39,6 +39,7 @@ import org.jboss.msc.service.ServiceBuilder;
 import org.jboss.msc.service.ServiceName;
 import org.jboss.msc.value.InjectedValue;
 import org.jboss.weld.ejb.spi.InterceptorBindings;
+import org.jboss.weld.serialization.spi.helpers.SerializableContextualInstance;
 
 /**
  * Interceptor for applying the JSR-299 specific interceptor bindings.
@@ -69,11 +70,18 @@ public class Jsr299BindingsInterceptor implements org.jboss.invocation.Intercept
     protected Object delegateInterception(InvocationContext invocationContext, InterceptionType interceptionType, List<Interceptor<?>> currentInterceptors, InterceptorInstances interceptorInstances)
             throws Exception {
         List<Object> currentInterceptorInstances = new ArrayList<Object>();
+        List<Interceptor<?>> currentInterceptorsRevisited = new ArrayList<Interceptor<?>>(currentInterceptors.size());
         for (Interceptor<?> interceptor : currentInterceptors) {
-            currentInterceptorInstances.add(interceptorInstances.getInstances().get(interceptor.getBeanClass().getName()).getInstance());
+            SerializableContextualInstance<Interceptor<Object>, Object> instance = interceptorInstances.getInstances().get(interceptor.getBeanClass().getName());
+            if (instance != null) {
+                // this can happen if the component (EJB bean) using @Interceptors annotation also attempted to
+                // enable such interceptor via beans.xml (which is incorrect, but we don't want to blow up)
+                currentInterceptorInstances.add(interceptorInstances.getInstances().get(interceptor.getBeanClass().getName()).getInstance());
+                currentInterceptorsRevisited.add(interceptor);
+            }
         }
         if (currentInterceptorInstances.size() > 0) {
-            return interceptorSupport.delegateInterception(invocationContext, interceptionType, currentInterceptors, currentInterceptorInstances);
+            return interceptorSupport.delegateInterception(invocationContext, interceptionType, currentInterceptorsRevisited, currentInterceptorInstances);
         } else {
             return invocationContext.proceed();
         }
