@@ -24,6 +24,8 @@ package org.jboss.as.weld.deployment.processors;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 import org.jboss.as.ee.structure.DeploymentType;
 import org.jboss.as.ee.structure.DeploymentTypeMarker;
@@ -43,6 +45,8 @@ import org.jboss.weld.bootstrap.api.Service;
  */
 public class DefaultModuleServiceProvider implements ModuleServicesProvider {
 
+    public static ConcurrentMap<Integer, WeldClassFileServices> map = new ConcurrentHashMap<>();
+    
     @Override
     public Collection<Service> getServices(DeploymentUnit rootDeploymentUnit, DeploymentUnit deploymentUnit, Module module, ResourceRoot resourceRoot) {
         List<Service> services = new ArrayList<>();
@@ -56,7 +60,7 @@ public class DefaultModuleServiceProvider implements ModuleServicesProvider {
         // ClassFileServices
         final CompositeIndex index = deploymentUnit.getAttachment(Attachments.COMPOSITE_ANNOTATION_INDEX);
         if (index != null) {
-            services.add(new WeldClassFileServices(index, module.getClassLoader()));
+            services.add(map.computeIfAbsent(index.hashCode(), k -> new WeldClassFileServices(index, module.getClassLoader())));
         }
         return services;
     }
