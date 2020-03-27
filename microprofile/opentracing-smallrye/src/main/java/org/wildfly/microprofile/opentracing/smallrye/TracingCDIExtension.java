@@ -25,18 +25,23 @@ package org.wildfly.microprofile.opentracing.smallrye;
 import io.opentracing.Tracer;
 
 import javax.enterprise.event.Observes;
-import javax.enterprise.inject.spi.BeanManager;
-import javax.enterprise.inject.spi.BeforeBeanDiscovery;
+import javax.enterprise.inject.spi.AfterBeanDiscovery;
 import javax.enterprise.inject.spi.Extension;
 import javax.enterprise.inject.spi.ProcessAnnotatedType;
 
 public class TracingCDIExtension implements Extension {
 
-    public void observeBeforeBeanDiscovery(@Observes BeforeBeanDiscovery bbd, BeanManager manager) {
-        String extensionName = TracingCDIExtension.class.getName();
-        bbd.addAnnotatedType(manager.createAnnotatedType(TracerProducer.class), extensionName + "-" + TracerProducer.class.getName());
+    private Tracer tracerInstance;
+
+    public TracingCDIExtension(Tracer tracerInstance) {
+        this.tracerInstance = tracerInstance;
     }
 
+    public void registerTracerBean(@Observes AfterBeanDiscovery abd) {
+        abd.addBean().addTransitiveTypeClosure(Tracer.class).createWith(i -> tracerInstance);
+    }
+
+    // TODO I suppose this somehow prevents other tracer impls from being picked up? Needs confirmation
     public void skipTracerBeans(@Observes ProcessAnnotatedType<? extends Tracer> processAnnotatedType) {
         TracingLogger.ROOT_LOGGER.extraTracerBean(processAnnotatedType.getAnnotatedType().getJavaClass().getName());
         processAnnotatedType.veto();

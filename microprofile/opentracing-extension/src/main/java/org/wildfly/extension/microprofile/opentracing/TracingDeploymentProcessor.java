@@ -46,6 +46,7 @@ import org.jboss.as.web.common.WarMetaData;
 import org.jboss.as.weld.WeldCapability;
 import org.jboss.metadata.javaee.spec.ParamValueMetaData;
 import org.jboss.metadata.web.jboss.JBossWebMetaData;
+import org.wildfly.microprofile.opentracing.smallrye.TracingCDIExtension;
 import org.wildfly.security.manager.WildFlySecurityManager;
 
 import java.util.ArrayList;
@@ -78,8 +79,9 @@ public class TracingDeploymentProcessor implements DeploymentUnitProcessor {
             return;
         }
         final CapabilityServiceSupport support = deploymentUnit.getAttachment(Attachments.CAPABILITY_SERVICE_SUPPORT);
+        final WeldCapability weldCapability;
         try {
-            final WeldCapability weldCapability = support.getCapabilityRuntimeAPI(WELD_CAPABILITY_NAME, WeldCapability.class);
+            weldCapability = support.getCapabilityRuntimeAPI(WELD_CAPABILITY_NAME, WeldCapability.class);
             if (!weldCapability.isPartOfWeldDeployment(deploymentUnit)) {
                 // SmallRye JAX-RS requires CDI. Without CDI, there's no integration needed
                 ROOT_LOGGER.noCdiDeployment();
@@ -91,7 +93,7 @@ public class TracingDeploymentProcessor implements DeploymentUnitProcessor {
                     deploymentPhaseContext.getDeploymentUnit().getName(), WELD_CAPABILITY_NAME
             ));
         }
-        injectTracer(deploymentPhaseContext, support);
+        injectTracer(deploymentPhaseContext, support, weldCapability);
     }
 
     private String getServiceName(DeploymentUnit deploymentUnit) {
@@ -169,7 +171,8 @@ public class TracingDeploymentProcessor implements DeploymentUnitProcessor {
         jbossWebMetaData.setContextParams(contextParams);
     }
 
-    private void injectTracer(DeploymentPhaseContext deploymentPhaseContext, CapabilityServiceSupport support) throws DeploymentUnitProcessingException {
+    private void injectTracer(DeploymentPhaseContext deploymentPhaseContext, CapabilityServiceSupport support,
+                              WeldCapability weldCapability) throws DeploymentUnitProcessingException {
         DeploymentUnit deploymentUnit = deploymentPhaseContext.getDeploymentUnit();
         Tracer tracer = null;
         ClassLoader initialCl = WildFlySecurityManager.getCurrentContextClassLoaderPrivileged();
@@ -210,7 +213,10 @@ public class TracingDeploymentProcessor implements DeploymentUnitProcessor {
                 tracer = WildFlyTracerFactory.getTracer(tracerConfigurationName, serviceName);
             }
         }
+        // create CDI extension with the tracer instance
+        weldCapability.registerExtensionInstance(new TracingCDIExtension(tracer), deploymentUnit);
         deploymentUnit.addToAttachmentList(ServletContextAttribute.ATTACHMENT_KEY, new ServletContextAttribute(SMALLRYE_OPENTRACING_SERVICE_NAME, serviceName));
+        // TODO this is probably no longer needed?
         deploymentUnit.addToAttachmentList(ServletContextAttribute.ATTACHMENT_KEY, new ServletContextAttribute(SMALLRYE_OPENTRACING_TRACER, tracer));
         deploymentUnit.addToAttachmentList(ServletContextAttribute.ATTACHMENT_KEY, new ServletContextAttribute(SMALLRYE_OPENTRACING_TRACER_MANAGED, true));
         deploymentUnit.putAttachment(ATTACHMENT_KEY, tracer);
