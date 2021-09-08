@@ -58,7 +58,7 @@ public class WeldSubsystemTestCase extends AbstractSubsystemBaseTest {
 
     @Override
     protected String getSubsystemXsdPath() throws Exception {
-        return "schema/jboss-as-weld_4_0.xsd";
+        return "schema/jboss-as-weld_5_0.xsd";
     }
 
     @Test
@@ -74,6 +74,11 @@ public class WeldSubsystemTestCase extends AbstractSubsystemBaseTest {
     @Test
     public void testSubsystem30() throws Exception {
         standardSubsystemTest("subsystem_3_0.xml", false);
+    }
+
+    @Test
+    public void testSubsystem40() throws Exception {
+        standardSubsystemTest("subsystem_4_0.xml", false);
     }
 
     @Test
@@ -142,6 +147,7 @@ public class WeldSubsystemTestCase extends AbstractSubsystemBaseTest {
                                 ))
                                 .addConfig(new NewAttributesConfig(WeldResourceDefinition.DEVELOPMENT_MODE_ATTRIBUTE))
                                 .addConfig(new NewAttributesConfig(WeldResourceDefinition.THREAD_POOL_SIZE_ATTRIBUTE))
+                                .addConfig(new NewAttributesConfig(WeldResourceDefinition.LEGACY_EMPTY_BEANS_XML_TREATMENT_ATTRIBUTE))
                                 .build()
 
                         )
@@ -164,8 +170,8 @@ public class WeldSubsystemTestCase extends AbstractSubsystemBaseTest {
                 new FailedOperationTransformationConfig().addFailedAttribute(PathAddress.pathAddress(WeldExtension.PATH_SUBSYSTEM),
                         ChainedConfig
                                 .createBuilder(WeldResourceDefinition.NON_PORTABLE_MODE_ATTRIBUTE, WeldResourceDefinition.REQUIRE_BEAN_DESCRIPTOR_ATTRIBUTE)
-                                .addConfig(new NewAttributesConfig(WeldResourceDefinition.THREAD_POOL_SIZE_ATTRIBUTE)).build()
-
+                                .addConfig(new NewAttributesConfig(WeldResourceDefinition.THREAD_POOL_SIZE_ATTRIBUTE))
+                                .addConfig(new NewAttributesConfig(WeldResourceDefinition.LEGACY_EMPTY_BEANS_XML_TREATMENT_ATTRIBUTE)).build()
                 ));
     }
 
@@ -182,6 +188,7 @@ public class WeldSubsystemTestCase extends AbstractSubsystemBaseTest {
         assertEquals(9, weldNode.get("thread-pool-size").resolve().asInt());
         assertEquals(true, weldNode.get("development-mode").resolve().asBoolean());
         assertEquals(true, weldNode.get("non-portable-mode").resolve().asBoolean());
+        assertEquals(true, weldNode.get("legacy-empty-beans-xml-treatment").resolve().asBoolean());
     }
 
 

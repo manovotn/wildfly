@@ -59,6 +59,7 @@ import org.jboss.as.weld.spi.ComponentSupport;
 import org.jboss.as.weld.spi.ModuleServicesProvider;
 import org.jboss.as.weld.util.Reflections;
 import org.jboss.as.weld.util.ServiceLoaders;
+import org.jboss.as.weld.util.Utils;
 import org.jboss.jandex.AnnotationInstance;
 import org.jboss.jandex.ClassInfo;
 import org.jboss.jandex.DotName;
@@ -121,7 +122,10 @@ public class ExternalBeanArchiveProcessor implements DeploymentUnitProcessor {
         deploymentUnits.add(deploymentUnit);
         deploymentUnits.addAll(deploymentUnit.getAttachmentList(Attachments.SUB_DEPLOYMENTS));
 
-        PropertyReplacingBeansXmlParser parser = new PropertyReplacingBeansXmlParser(deploymentUnit);
+        PropertyReplacingBeansXmlParser parser =
+                new PropertyReplacingBeansXmlParser(deploymentUnit,
+                        Utils.getRootDeploymentUnit(deploymentUnit).getAttachment(WeldConfiguration.ATTACHMENT_KEY)
+                                .isLegacyEmptyBeansXmlTreatment());
 
         final HashSet<URL> existing = new HashSet<URL>();
 

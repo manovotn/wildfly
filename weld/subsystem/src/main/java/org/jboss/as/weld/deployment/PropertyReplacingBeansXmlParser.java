@@ -39,7 +39,9 @@ public class PropertyReplacingBeansXmlParser extends BeansXmlParser {
 
     private final PropertyReplacer replacer;
 
-    public PropertyReplacingBeansXmlParser(DeploymentUnit deploymentUnit) {
+    public PropertyReplacingBeansXmlParser(DeploymentUnit deploymentUnit, boolean legacyEmptyBeansXmlParser) {
+        // TODO requires update of Weld dependencies to work
+        //super(legacyEmptyBeansXmlParser);
         this.replacer = SpecDescriptorPropertyReplacement.propertyReplacer(deploymentUnit);
     }
 

@@ -50,12 +50,21 @@ public class WeldTransformers implements ExtensionTransformerRegistration {
     public void registerTransformers(SubsystemTransformerRegistration subsystem) {
         ModelVersion version1_0_0 = ModelVersion.create(1, 0, 0);
         ModelVersion version3_0_0 = ModelVersion.create(3, 0, 0);
+        ModelVersion version4_0_0 = ModelVersion.create(4, 0, 0);
 
         ChainedTransformationDescriptionBuilder chainedBuilder = TransformationDescriptionBuilder.Factory
                 .createChainedSubystemInstance(subsystem.getCurrentSubsystemVersion());
 
-        // Differences between the current version and 3.0.0
-        ResourceTransformationDescriptionBuilder builder300 = chainedBuilder.createBuilder(subsystem.getCurrentSubsystemVersion(), version3_0_0);
+        // Differences between the current version and 4.0.0
+        ResourceTransformationDescriptionBuilder builder400 = chainedBuilder.createBuilder(subsystem.getCurrentSubsystemVersion(), version4_0_0);
+        builder400.getAttributeBuilder()
+                // Reject if defined, discard if there is just the default value present
+                .setDiscard(DiscardAttributeChecker.DEFAULT_VALUE, WeldResourceDefinition.LEGACY_EMPTY_BEANS_XML_TREATMENT_ATTRIBUTE)
+                .addRejectCheck(RejectAttributeChecker.DEFINED, WeldResourceDefinition.LEGACY_EMPTY_BEANS_XML_TREATMENT_ATTRIBUTE)
+                .end();
+
+        // Differences between 4.0.0 and 3.0.0
+        ResourceTransformationDescriptionBuilder builder300 = chainedBuilder.createBuilder(version4_0_0, version3_0_0);
         builder300.getAttributeBuilder().setDiscard(DiscardAttributeChecker.UNDEFINED, WeldResourceDefinition.THREAD_POOL_SIZE_ATTRIBUTE)
                 // Reject thread-pool-size attribute if defined
                 .addRejectCheck(RejectAttributeChecker.DEFINED, WeldResourceDefinition.THREAD_POOL_SIZE_ATTRIBUTE).end();
@@ -86,6 +95,6 @@ public class WeldTransformers implements ExtensionTransformerRegistration {
                 // if the attribute was not discarded it means that it is defined as 'true'. Therefore, reject.
                 .addRejectCheck(RejectAttributeChecker.DEFINED, WeldResourceDefinition.DEVELOPMENT_MODE_ATTRIBUTE).end();
 
-        chainedBuilder.buildAndRegister(subsystem, new ModelVersion[]{version1_0_0, version3_0_0});
+        chainedBuilder.buildAndRegister(subsystem, new ModelVersion[]{version1_0_0, version3_0_0, version4_0_0});
     }
 }
