@@ -27,7 +27,10 @@ import static org.wildfly.extension.opentelemetry.OpenTelemetryConfigurationCons
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
+import io.smallrye.opentelemetry.api.OpenTelemetryConfig;
 import org.jboss.as.controller.AttributeDefinition;
 import org.jboss.as.controller.OperationFailedException;
 import org.jboss.as.controller.PersistentResourceDefinition;
@@ -45,6 +48,7 @@ import org.jboss.dmr.ModelType;
  */
 
 class OpenTelemetrySubsystemDefinition extends PersistentResourceDefinition {
+    static final String OPENTELEMETRY_MODULE = "org.wildfly.extension.opentelemetry";
     private static final String[] ALLOWED_EXPORTERS = {"jaeger", "otlp"};
     private static final String[] ALLOWED_SAMPLERS = {"on", "off", "ratio"};
     private static final String[] ALLOWED_SPAN_PROCESSORS = {"batch", "simple"};
@@ -63,6 +67,11 @@ class OpenTelemetrySubsystemDefinition extends PersistentResourceDefinition {
                     .addRequirements(WELD_CAPABILITY_NAME)
                     .build();
 
+    public static final WildFlyOpenTelemetryConfigSupplier CONFIG_SUPPLIER = new WildFlyOpenTelemetryConfigSupplier();
+    static final RuntimeCapability<WildFlyOpenTelemetryConfigSupplier> OPENTELEMETRY_CONFIG_CAPABILITY =
+            RuntimeCapability.Builder.of(OPENTELEMETRY_MODULE + ".config", false, CONFIG_SUPPLIER).build();
+//            RuntimeCapability.Builder.of(OPENTELEMETRY_MODULE + ".config", WildFlyOpenTelemetryConfigSupplier.class)
+//                    .build();
     public static final SimpleAttributeDefinition SERVICE_NAME = SimpleAttributeDefinitionBuilder
             .create(OpenTelemetryConfigurationConstants.SERVICE_NAME, ModelType.STRING, true)
             .setAllowExpression(true)
@@ -164,14 +173,28 @@ class OpenTelemetrySubsystemDefinition extends PersistentResourceDefinition {
     protected OpenTelemetrySubsystemDefinition() {
         super(new SimpleResourceDefinition.Parameters(OpenTelemetrySubsystemExtension.SUBSYSTEM_PATH,
                 OpenTelemetrySubsystemExtension.getResourceDescriptionResolver())
-                .setAddHandler(OpenTelemetrySubsystemAdd.INSTANCE)
+                .setAddHandler(new OpenTelemetrySubsystemAdd())
                 .setRemoveHandler(ReloadRequiredRemoveStepHandler.INSTANCE)
-                .setCapabilities(OPENTELEMETRY_CAPABILITY)
+                .setCapabilities(OPENTELEMETRY_CAPABILITY, OPENTELEMETRY_CONFIG_CAPABILITY)
         );
     }
 
     @Override
     public Collection<AttributeDefinition> getAttributes() {
         return Arrays.asList(ATTRIBUTES);
+    }
+
+    static class WildFlyOpenTelemetryConfigSupplier implements Supplier<OpenTelemetryConfig>,
+            Consumer<OpenTelemetryConfig> {
+        private OpenTelemetryConfig config;
+        @Override
+        public void accept(OpenTelemetryConfig openTelemetryConfig) {
+            this.config = openTelemetryConfig;
+        }
+
+        @Override
+        public OpenTelemetryConfig get() {
+            return config;
+        }
     }
 }

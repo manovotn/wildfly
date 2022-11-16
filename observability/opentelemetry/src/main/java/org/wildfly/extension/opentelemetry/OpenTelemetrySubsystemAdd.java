@@ -19,6 +19,8 @@
 
 package org.wildfly.extension.opentelemetry;
 
+import static org.wildfly.extension.opentelemetry.OpenTelemetrySubsystemDefinition.CONFIG_SUPPLIER;
+
 import org.jboss.as.controller.AbstractBoottimeAddStepHandler;
 import org.jboss.as.controller.OperationContext;
 import org.jboss.as.controller.OperationFailedException;
@@ -35,11 +37,9 @@ import org.wildfly.extension.opentelemetry.api.WildFlyOpenTelemetryConfig;
  */
 class OpenTelemetrySubsystemAdd extends AbstractBoottimeAddStepHandler {
 
-    private OpenTelemetrySubsystemAdd() {
+    OpenTelemetrySubsystemAdd() {
         super(OpenTelemetrySubsystemDefinition.ATTRIBUTES);
     }
-
-    public static final OpenTelemetrySubsystemAdd INSTANCE = new OpenTelemetrySubsystemAdd();
 
     /**
      * {@inheritDoc}
@@ -61,6 +61,10 @@ class OpenTelemetrySubsystemAdd extends AbstractBoottimeAddStepHandler {
                 OpenTelemetrySubsystemDefinition.RATIO.resolveModelAttribute(context, model).asStringOrNull()
         );
 
+        CONFIG_SUPPLIER.accept(config);
+
+        boolean mpTelemetryInstalled = context.getCapabilityServiceSupport().hasCapability("org.wildfly.extension.microprofile.telemetry");
+
         context.addStep(new AbstractDeploymentChainStep() {
             @Override
             public void execute(DeploymentProcessorTarget processorTarget) {
@@ -74,7 +78,7 @@ class OpenTelemetrySubsystemAdd extends AbstractBoottimeAddStepHandler {
                         OpenTelemetrySubsystemExtension.SUBSYSTEM_NAME,
                         Phase.POST_MODULE,
                         0x3810,
-                        new OpenTelemetryDeploymentProcessor(config));
+                        new OpenTelemetryDeploymentProcessor(!mpTelemetryInstalled, config));
             }
         }, OperationContext.Stage.RUNTIME);
     }

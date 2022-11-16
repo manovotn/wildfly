@@ -12,9 +12,11 @@ import jakarta.enterprise.inject.spi.Extension;
 import jakarta.inject.Singleton;
 
 public class OpenTelemetryCdiExtension implements Extension {
+    private final boolean useServerConfig;
     private final OpenTelemetryConfig config;
 
-    public OpenTelemetryCdiExtension(OpenTelemetryConfig config) {
+    public OpenTelemetryCdiExtension(boolean useServerConfig, OpenTelemetryConfig config) {
+        this.useServerConfig = useServerConfig;
         this.config = config;
     }
 
@@ -26,12 +28,7 @@ public class OpenTelemetryCdiExtension implements Extension {
     }
 
     public void registerOpenTelemetryConfigBean(@Observes AfterBeanDiscovery abd) {
-        try {
-            // If this class is found, then we don't need to inject our server-config-based configuration, as it's
-            // provided by the smallrye-opentelemetry-config module and MP Config
-            // TODO: Use a capability check for this
-            Class.forName("io.smallrye.opentelemetry.implementation.config.OpenTelemetryConfigProducer");
-        } catch (ClassNotFoundException cnfe) {
+        if (useServerConfig) {
             abd.addBean()
                     .scope(Singleton.class)
                     .addQualifier(Default.Literal.INSTANCE)

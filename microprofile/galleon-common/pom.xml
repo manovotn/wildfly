@@ -799,6 +799,10 @@
             <groupId>${full.maven.groupId}</groupId>
             <artifactId>wildfly-microprofile-telemetry</artifactId>
         </dependency>
+        <dependency>
+            <groupId>${full.maven.groupId}</groupId>
+            <artifactId>wildfly-microprofile-telemetry-api</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>org.wildfly.security.mp</groupId>

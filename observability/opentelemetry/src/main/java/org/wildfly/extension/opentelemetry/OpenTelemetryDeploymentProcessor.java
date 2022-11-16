@@ -36,9 +36,11 @@ import org.jboss.as.weld.WeldCapability;
 import org.wildfly.extension.opentelemetry.api.OpenTelemetryCdiExtension;
 
 class OpenTelemetryDeploymentProcessor implements DeploymentUnitProcessor {
+    private final boolean useServerConfig;
     private final OpenTelemetryConfig config;
 
-    public OpenTelemetryDeploymentProcessor(OpenTelemetryConfig config) {
+    public OpenTelemetryDeploymentProcessor(boolean useServerConfig, OpenTelemetryConfig config) {
+        this.useServerConfig = useServerConfig;
         this.config = config;
     }
 
@@ -60,7 +62,7 @@ class OpenTelemetryDeploymentProcessor implements DeploymentUnitProcessor {
                 OTEL_LOGGER.noCdiDeployment();
                 return;
             }
-            weldCapability.registerExtensionInstance(new OpenTelemetryCdiExtension(config), deploymentUnit);
+            weldCapability.registerExtensionInstance(new OpenTelemetryCdiExtension(useServerConfig, config), deploymentUnit);
             weldCapability.registerExtensionInstance(new OpenTelemetryExtension(), deploymentUnit);
         } catch (CapabilityServiceSupport.NoSuchCapabilityException e) {
             // We should not be here since the subsystem depends on weld capability. Just in case ...

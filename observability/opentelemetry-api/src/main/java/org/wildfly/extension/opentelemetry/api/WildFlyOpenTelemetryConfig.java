@@ -24,11 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import io.smallrye.opentelemetry.api.OpenTelemetryConfig;
-import jakarta.enterprise.inject.Default;
-import jakarta.inject.Singleton;
 
-@Default
-@Singleton
 public class WildFlyOpenTelemetryConfig implements OpenTelemetryConfig {
     private final Map<String, String> properties;
 

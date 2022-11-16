@@ -1460,7 +1460,7 @@
             </dependency>
             <dependency>
                 <groupId>io.smallrye.opentelemetry</groupId>
-                <artifactId>smallrye-opentelemetry-api-jakarta</artifactId>
+                <artifactId>smallrye-opentelemetry-api</artifactId>
                 <version>${version.io.smallrye.smallrye-opentelemetry}</version>
                 <exclusions>
                     <exclusion>
@@ -1471,7 +1471,7 @@
             </dependency>
             <dependency>
                 <groupId>io.smallrye.opentelemetry</groupId>
-                <artifactId>smallrye-opentelemetry-cdi-jakarta</artifactId>
+                <artifactId>smallrye-opentelemetry-cdi</artifactId>
                 <version>${version.io.smallrye.smallrye-opentelemetry}</version>
                 <exclusions>
                     <exclusion>
@@ -1482,7 +1482,7 @@
             </dependency>
             <dependency>
                 <groupId>io.smallrye.opentelemetry</groupId>
-                <artifactId>smallrye-opentelemetry-rest-jakarta</artifactId>
+                <artifactId>smallrye-opentelemetry-rest</artifactId>
                 <version>${version.io.smallrye.smallrye-opentelemetry}</version>
                 <exclusions>
                     <exclusion>

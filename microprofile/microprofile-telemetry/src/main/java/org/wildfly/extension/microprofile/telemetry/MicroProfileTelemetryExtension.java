@@ -2,6 +2,8 @@ package org.wildfly.extension.microprofile.telemetry;
 
 import static org.jboss.as.controller.descriptions.ModelDescriptionConstants.SUBSYSTEM;
 
+import java.util.EnumSet;
+
 import org.jboss.as.controller.Extension;
 import org.jboss.as.controller.ExtensionContext;
 import org.jboss.as.controller.ModelVersion;
@@ -14,8 +16,6 @@ import org.jboss.as.controller.parsing.ExtensionParsingContext;
 import org.jboss.as.controller.registry.ManagementResourceRegistration;
 
 public class MicroProfileTelemetryExtension implements Extension {
-    static final String EXTENSION_NAME = "org.wildfly.extension.microprofile.telemetry";
-
     /**
      * The name of our subsystem within the model.
      */
@@ -41,13 +41,18 @@ public class MicroProfileTelemetryExtension implements Extension {
     @Override
     public void initialize(ExtensionContext context) {
         final SubsystemRegistration subsystem = context.registerSubsystem(SUBSYSTEM_NAME, CURRENT_MODEL_VERSION);
+        subsystem.registerXMLElementWriter(new MicroProfileTelemetryParser(MicroProfileTelemetrySchema.CURRENT));
 
-        final ManagementResourceRegistration registration = subsystem.registerSubsystemModel(new MicroProfileTelemetrySubsystemDefinition());
-        registration.registerOperationHandler(GenericSubsystemDescribeHandler.DEFINITION, GenericSubsystemDescribeHandler.INSTANCE);
+        final ManagementResourceRegistration registration =
+                subsystem.registerSubsystemModel(new MicroProfileTelemetrySubsystemDefinition());
+        registration.registerOperationHandler(GenericSubsystemDescribeHandler.DEFINITION,
+                GenericSubsystemDescribeHandler.INSTANCE);
     }
 
     @Override
-    public void initializeParsers(ExtensionParsingContext extensionParsingContext) {
-
+    public void initializeParsers(ExtensionParsingContext context) {
+        for (MicroProfileTelemetrySchema schema : EnumSet.allOf(MicroProfileTelemetrySchema.class)) {
+            context.setSubsystemXmlMapping(SUBSYSTEM_NAME, schema.getNamespaceUri(), new MicroProfileTelemetryParser(schema));
+        }
     }
 }

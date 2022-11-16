@@ -9,11 +9,9 @@ import org.jboss.as.server.deployment.Phase;
 import org.jboss.dmr.ModelNode;
 
 public class MicroProfileTelemetrySubsystemAdd extends AbstractBoottimeAddStepHandler {
-    private MicroProfileTelemetrySubsystemAdd() {
+    MicroProfileTelemetrySubsystemAdd() {
         super();
     }
-
-    public static final MicroProfileTelemetrySubsystemAdd INSTANCE = new MicroProfileTelemetrySubsystemAdd();
 
     /**
      * {@inheritDoc}
@@ -25,6 +23,12 @@ public class MicroProfileTelemetrySubsystemAdd extends AbstractBoottimeAddStepHa
         context.addStep(new AbstractDeploymentChainStep() {
             @Override
             public void execute(DeploymentProcessorTarget processorTarget) {
+                processorTarget.addDeploymentProcessor(
+                        MicroProfileTelemetryExtension.SUBSYSTEM_NAME,
+                        Phase.DEPENDENCIES,
+                        0x1910,
+                        new MicroProfileTelemetryDependencyProcessor()
+                );
                 processorTarget.addDeploymentProcessor(
                         MicroProfileTelemetryExtension.SUBSYSTEM_NAME,
                         Phase.POST_MODULE,
