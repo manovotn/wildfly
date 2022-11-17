@@ -16,18 +16,14 @@ public class MicroProfileTelemetrySubsystemDefinition extends PersistentResource
     static final String MICROPROFILE_TELEMETRY_API_MODULE = "org.wildfly.extension.microprofile.telemetry-api";
     static final String OPENTELEMETRY_CAPABILITY_NAME = "org.wildfly.extension.opentelemetry";
 
-    static final String[] MODULES = {
-            "org.wildfly.extension.opentelemetry",
-    };
-
     public static final String[] EXPORTED_MODULES = {
             "io.opentelemetry.api",
             "io.opentelemetry.context",
             "io.opentelemetry.trace",
             "io.smallrye.config",
             "io.smallrye.opentelemetry",
-            "org.wildfly.extension.opentelemetry-api",
             "org.eclipse.microprofile.config.api",
+            MICROPROFILE_TELEMETRY_API_MODULE
     };
 
     static final RuntimeCapability<Void> MICROPROFILE_TELEMETRY_CAPABILITY =

@@ -20,8 +20,6 @@
 package org.wildfly.extension.microprofile.telemetry;
 
 import static org.wildfly.extension.microprofile.telemetry.MicroProfileTelemetrySubsystemDefinition.EXPORTED_MODULES;
-import static org.wildfly.extension.microprofile.telemetry.MicroProfileTelemetrySubsystemDefinition.MICROPROFILE_TELEMETRY_API_MODULE;
-import static org.wildfly.extension.microprofile.telemetry.MicroProfileTelemetrySubsystemDefinition.MODULES;
 
 import org.jboss.as.controller.capability.CapabilityServiceSupport;
 import org.jboss.as.server.deployment.Attachments;
@@ -54,19 +52,18 @@ class MicroProfileTelemetryDependencyProcessor implements DeploymentUnitProcesso
             WeldCapability weldCapability = support.getCapabilityRuntimeAPI(Capabilities.WELD_CAPABILITY_NAME,
                     WeldCapability.class);
             if (weldCapability.isPartOfWeldDeployment(deploymentUnit)) {
-                System.out.println("***** Exporting module " + MICROPROFILE_TELEMETRY_API_MODULE);
-                moduleSpecification.addSystemDependency(new ModuleDependency(moduleLoader, MICROPROFILE_TELEMETRY_API_MODULE,
-                        false, true, true, false));
-            }
-            for (String module : MODULES) {
-                System.out.println("***** Adding module " + module);
-                moduleSpecification.addSystemDependency(new ModuleDependency(moduleLoader, module, false, false,
-                        true, false));
-            }
-            for (String module : EXPORTED_MODULES) {
-                System.out.println("***** Exporting module " + module);
-                moduleSpecification.addSystemDependency(new ModuleDependency(moduleLoader, module, false, true,
-                        true, false));
+//                for (String module : MODULES) {
+//                    System.out.println("***** Adding module " + module);
+//                    moduleSpecification.addSystemDependency(new ModuleDependency(moduleLoader, module, false, true,
+//                            true, false));
+//                }
+                for (String module : EXPORTED_MODULES) {
+                    System.out.println("***** Exporting module " + module);
+                    moduleSpecification.addSystemDependency(new ModuleDependency(moduleLoader, module, false, true,
+                            true, false));
+                }
+            } else {
+                // TODO: Log error? CDI is required, iirc
             }
         } catch (CapabilityServiceSupport.NoSuchCapabilityException e) {
             throw new IllegalStateException();

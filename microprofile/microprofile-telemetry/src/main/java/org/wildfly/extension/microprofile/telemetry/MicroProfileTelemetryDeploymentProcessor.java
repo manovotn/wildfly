@@ -15,7 +15,7 @@ import org.jboss.as.server.deployment.DeploymentUnit;
 import org.jboss.as.server.deployment.DeploymentUnitProcessingException;
 import org.jboss.as.server.deployment.DeploymentUnitProcessor;
 import org.jboss.as.weld.WeldCapability;
-import org.wildfly.extension.microprofile.telemetry.cdi.MicroProfileTelemetryCdiExtension;
+import org.wildfly.extension.microprofile.telemetry.api.MicroProfileTelemetryCdiExtension;
 
 public class MicroProfileTelemetryDeploymentProcessor implements DeploymentUnitProcessor {
     @Override
@@ -39,7 +39,8 @@ public class MicroProfileTelemetryDeploymentProcessor implements DeploymentUnitP
             final OpenTelemetryConfig serverConfig =
                     (OpenTelemetryConfig) support.getCapabilityRuntimeAPI("org.wildfly.extension.opentelemetry.config",
                             Supplier.class).get();
-            weldCapability.registerExtensionInstance(new MicroProfileTelemetryCdiExtension(serverConfig), deploymentUnit);
+            weldCapability.registerExtensionInstance(new MicroProfileTelemetryCdiExtension(serverConfig.properties()),
+                    deploymentUnit);
         } catch (CapabilityServiceSupport.NoSuchCapabilityException e) {
             throw MPTEL_LOGGER.deploymentRequiresCapability(deploymentPhaseContext.getDeploymentUnit().getName(),
                     WELD_CAPABILITY_NAME);
