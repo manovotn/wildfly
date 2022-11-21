@@ -43,5 +43,8 @@
         <module name="java.logging"/>
         <!-- Needed to satisfy bean injection in this module -->
         <module name="org.wildfly.extension.opentelemetry-api"/>
+
+        <!-- You now need this dependency because that's where the CDI extension declaring OpenTelemetryConfig bean is  -->
+        <module name="org.wildfly.extension.microprofile.telemetry-api"/>
     </dependencies>
 </module>
