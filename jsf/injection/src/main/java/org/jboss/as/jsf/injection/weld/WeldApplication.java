@@ -6,7 +6,7 @@ package org.jboss.as.jsf.injection.weld;
 
 import jakarta.el.ELResolver;
 import jakarta.el.ExpressionFactory;
-import jakarta.enterprise.inject.spi.BeanManager;
+import jakarta.enterprise.inject.spi.el.ELAwareBeanManager;
 import jakarta.faces.application.Application;
 import jakarta.faces.application.ApplicationWrapper;
 import javax.naming.InitialContext;
@@ -38,7 +38,7 @@ public class WeldApplication extends ApplicationWrapper {
 
     private volatile ExpressionFactory expressionFactory;
     private volatile boolean initialized = false;
-    private volatile BeanManager beanManager;
+    private volatile ELAwareBeanManager beanManager;
 
     public WeldApplication(Application application) {
         this.application = application;
@@ -52,8 +52,8 @@ public class WeldApplication extends ApplicationWrapper {
         if (!initialized) {
             synchronized (this) {
                 if(!initialized) {
-                    if(beanManager() != null) {
-                        elResolver.setDelegate(beanManager().getELResolver());
+                    if(elAwareBeanManager() != null) {
+                        elResolver.setDelegate(elAwareBeanManager().getELResolver());
                     }
                     initialized = true;
                 }
@@ -73,7 +73,7 @@ public class WeldApplication extends ApplicationWrapper {
             init();
             synchronized (this) {
                 if (expressionFactory == null) {
-                    BeanManager bm = beanManager();
+                    ELAwareBeanManager bm = elAwareBeanManager();
                     if (bm == null) {
                         expressionFactory = application.getExpressionFactory();
                     } else {
@@ -85,13 +85,14 @@ public class WeldApplication extends ApplicationWrapper {
         return expressionFactory;
     }
 
-    private BeanManager beanManager() {
+    private ELAwareBeanManager elAwareBeanManager() {
         if (beanManager == null) {
             synchronized (this) {
                 if (beanManager == null) {
                     try {
                         // This can throw IllegalArgumentException on servlet context destroyed if init() was never called
-                        beanManager = (BeanManager) new InitialContext().lookup("java:comp/BeanManager");
+                        // Note that Weld's BeanManager will always also be ELAwareBeanManager implementation
+                        beanManager = (ELAwareBeanManager) new InitialContext().lookup("java:comp/BeanManager");
                     } catch (NamingException | IllegalArgumentException e) {
                         return null;
                     }

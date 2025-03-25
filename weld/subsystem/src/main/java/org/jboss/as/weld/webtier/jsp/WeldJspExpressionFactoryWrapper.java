@@ -6,9 +6,11 @@ package org.jboss.as.weld.webtier.jsp;
 
 import jakarta.el.ELContextListener;
 import jakarta.el.ExpressionFactory;
-import jakarta.enterprise.inject.spi.BeanManager;
+
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
+
+import jakarta.enterprise.inject.spi.el.ELAwareBeanManager;
 import jakarta.servlet.ServletContext;
 import jakarta.servlet.jsp.JspApplicationContext;
 import jakarta.servlet.jsp.JspFactory;
@@ -28,7 +30,7 @@ public class WeldJspExpressionFactoryWrapper implements ExpressionFactoryWrapper
 
     @Override
     public ExpressionFactory wrap(ExpressionFactory expressionFactory, ServletContext servletContext) {
-        BeanManager beanManager = getBeanManager();
+        ELAwareBeanManager beanManager = getElAwareBeanManager();
         if(beanManager == null) {
             //this should never happen
             return expressionFactory;
@@ -43,9 +45,9 @@ public class WeldJspExpressionFactoryWrapper implements ExpressionFactoryWrapper
         return beanManager.wrapExpressionFactory(expressionFactory);
     }
 
-    private BeanManager getBeanManager() {
+    private ELAwareBeanManager getElAwareBeanManager() {
         try {
-            return (BeanManager) new InitialContext().lookup("java:comp/BeanManager");
+            return (ELAwareBeanManager) new InitialContext().lookup("java:comp/BeanManager");
         } catch (NamingException e) {
             return null;
         }
